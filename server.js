@@ -31,3 +31,8 @@ app.post("/login", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor iniciado en el puerto ${PORT}`);
 });
+
+app.get('/', (req, res) => {
+  res.send('Backend funcionando');
+});
+
