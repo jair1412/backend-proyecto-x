@@ -10,8 +10,8 @@ app.use(bodyParser.json());
 
 // Usuarios predefinidos con tipo
 const usuarios = [
-  { usuario: "admin", clave: "abcd", tipo: "yo" },
-  { usuario: "jair", clave: "1234", tipo: "otros" }
+  { usuario: "jair", clave: "abcd", tipo: "yo" },
+  { usuario: "admin", clave: "1412", tipo: "otros" }
 ];
 
 // Ruta para login
