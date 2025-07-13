@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login Admin</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #login-form {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      width: 300px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #1a1a1a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #mensaje {
+      margin-top: 10px;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <form id="login-form">
+    <h2>Iniciar Sesión (Admin)</h2>
+    <input type="text" id="usuario" placeholder="Usuario" required />
+    <input type="password" id="clave" placeholder="Clave" required />
+    <button type="submit">Iniciar sesión</button>
+    <div id="mensaje"></div>
+  </form>
+
+  <script>
+    const form = document.getElementById("login-form");
+    const mensaje = document.getElementById("mensaje");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const usuario = document.getElementById("usuario").value;
+      const clave = document.getElementById("clave").value;
+
+      try {
+        const respuesta = await fetch("https://TU-BACKEND-RENDER.onrender.com/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ usuario, clave }),
+        });
+
+        const data = await respuesta.json();
+
+        if (respuesta.ok) {
+          mensaje.style.color = "green";
+          mensaje.textContent = data.mensaje;
+          // Puedes redirigir a una página admin:
+          // window.location.href = "admin.html";
+        } else {
+          mensaje.style.color = "red";
+          mensaje.textContent = data.mensaje;
+        }
+      } catch (error) {
+        mensaje.style.color = "red";
+        mensaje.textContent = "Error al conectar con el servidor.";
+        console.error(error);
+      }
+    });
+  </script>
+</body>
+</html>
