@@ -67,7 +67,7 @@
       const clave = document.getElementById("clave").value;
 
       try {
-        const respuesta = await fetch("https://TU-BACKEND-RENDER.onrender.com/login", {
+        const respuesta = await fetch("https://backend-proyecto-x.onrender.com", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ usuario, clave }),
