@@ -8,10 +8,10 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Usuarios predefinidos
+// Usuarios predefinidos con tipo
 const usuarios = [
-  { usuario: "admin", clave: "1234" },
-  { usuario: "jair", clave: "abcd" }
+  { usuario: "admin", clave: "abcd", tipo: "yo" },
+  { usuario: "jair", clave: "1234", tipo: "otros" }
 ];
 
 // Ruta para login
@@ -22,17 +22,20 @@ app.post("/login", (req, res) => {
   );
 
   if (encontrado) {
-    res.json({ acceso: true, mensaje: "Bienvenido administrador" });
+    res.json({ 
+      acceso: true, 
+      mensaje: "Bienvenido administrador",
+      tipo: encontrado.tipo
+    });
   } else {
     res.status(401).json({ acceso: false, mensaje: "Credenciales incorrectas" });
   }
-});
-
-app.listen(PORT, () => {
-  console.log(`Servidor iniciado en el puerto ${PORT}`);
 });
 
 app.get('/', (req, res) => {
   res.send('Backend funcionando');
 });
 
+app.listen(PORT, () => {
+  console.log(`Servidor iniciado en el puerto ${PORT}`);
+});
