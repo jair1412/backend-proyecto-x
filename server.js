@@ -55,19 +55,53 @@ app.get('/', (req, res) => {
   res.send('Backend funcionando');
 });
 
-// Ruta para guardar nuevo código con números y correo
+// Función para generar números únicos no repetidos
+async function generarNumerosAleatorios(cantidad) {
+  const usados = new Set();
+
+  const codigosExistentes = await Codigo.find({});
+  codigosExistentes.forEach(c => c.numeros.forEach(n => usados.add(n)));
+
+  const disponibles = [];
+  for (let i = 0; i <= 999; i++) {
+    if (!usados.has(i)) {
+      disponibles.push(i);
+    }
+  }
+
+  if (disponibles.length < cantidad) {
+    throw new Error("No hay suficientes números disponibles");
+  }
+
+  const resultado = [];
+  for (let i = 0; i < cantidad; i++) {
+    const idx = Math.floor(Math.random() * disponibles.length);
+    resultado.push(disponibles.splice(idx, 1)[0]);
+  }
+
+  return resultado.sort((a, b) => a - b);
+}
+
+// Ruta mejorada: guarda código con generación de números
 app.post("/guardar-codigo", async (req, res) => {
-  const { codigo, numeros, correo } = req.body;
+  const { codigo, combo, correo } = req.body;
+
+  const cantidad = parseInt(combo);
+  if (isNaN(cantidad) || cantidad <= 0 || cantidad > 999) {
+    return res.status(400).json({ mensaje: "Combo inválido" });
+  }
+
   try {
-    // Crea y guarda un nuevo documento en MongoDB
+    const numeros = await generarNumerosAleatorios(cantidad);
     const nuevoCodigo = new Codigo({ codigo, numeros, correo });
     await nuevoCodigo.save();
-    res.json({ mensaje: "Código guardado correctamente" });
+    res.json({ mensaje: `Código guardado con ${cantidad} números`, numeros });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error guardando el código" });
+    res.status(500).json({ mensaje: "Error guardando el código" });
   }
 });
+
 
 // Ruta para confirmar código y (opcional) enviar correo
 app.post("/confirmar-codigo", async (req, res) => {
