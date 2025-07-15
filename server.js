@@ -55,6 +55,58 @@ app.get('/', (req, res) => {
   res.send('Backend funcionando');
 });
 
+// Ruta para guardar nuevo código con números y correo
+app.post("/guardar-codigo", async (req, res) => {
+  const { codigo, numeros, correo } = req.body;
+  try {
+    // Crea y guarda un nuevo documento en MongoDB
+    const nuevoCodigo = new Codigo({ codigo, numeros, correo });
+    await nuevoCodigo.save();
+    res.json({ mensaje: "Código guardado correctamente" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error guardando el código" });
+  }
+});
+
+// Ruta para confirmar código y (opcional) enviar correo
+app.post("/confirmar-codigo", async (req, res) => {
+  const { codigo } = req.body;
+  try {
+    const codigoDoc = await Codigo.findOne({ codigo });
+    if (!codigoDoc) {
+      return res.status(404).json({ error: "Código no encontrado" });
+    }
+    if (codigoDoc.confirmado) {
+      return res.status(400).json({ error: "Código ya confirmado" });
+    }
+
+    // Cambia el estado a confirmado
+    codigoDoc.confirmado = true;
+    await codigoDoc.save();
+
+    // Aquí se puede agregar el envío de correo, ejemplo abajo
+
+    res.json({ mensaje: "Código confirmado correctamente" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error confirmando el código" });
+  }
+});
+
+// Ruta para obtener progreso total de números vendidos
+app.get("/progreso", async (req, res) => {
+  try {
+    const codigosConfirmados = await Codigo.find({ confirmado: true });
+    const totalNumeros = codigosConfirmados.reduce((acc, c) => acc + c.numeros.length, 0);
+    res.json({ totalNumeros });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error obteniendo progreso" });
+  }
+});
+
+
 app.listen(PORT, () => {
   console.log(`Servidor iniciado en el puerto ${PORT}`);
 });
