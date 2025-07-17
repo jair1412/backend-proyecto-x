@@ -149,22 +149,22 @@ app.listen(PORT, () => {
 app.get("/consultar-por-correo/:correo", async (req, res) => {
   try {
     const { correo } = req.params;
+    const registros = await Codigo.find({ correo });
 
-    // Busca sin importar mayúsculas/minúsculas
-    const registro = await Codigo.findOne({
-      correo: { $regex: new RegExp(`^${correo}$`, "i") },
-    });
-
-    if (!registro) {
+    if (!registros || registros.length === 0) {
       return res.status(404).json({ error: "Correo no encontrado" });
     }
 
-    res.json({
-      codigo: registro.codigo,
-      numeros: registro.numeros,
-    });
+    // Mapeamos los registros para devolver solo lo necesario
+    const resultado = registros.map(r => ({
+      codigo: r.codigo,
+      numeros: r.numeros
+    }));
+
+    res.json(resultado);
   } catch (error) {
-    console.error("❌ Error al consultar por correo:", error);
+    console.error(error);
     res.status(500).json({ error: "Error en la consulta" });
   }
 });
+
