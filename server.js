@@ -27,6 +27,19 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
+//guardar datos de confirmación
+const confirmacionSchema = new mongoose.Schema({
+  nombre: String,
+  telefono: String,
+  ciudad: String,
+  combo: Number,
+  codigo: String,
+  fecha: { type: Date, default: Date.now }
+});
+
+const Confirmacion = mongoose.model('Confirmacion', confirmacionSchema);
+
+
 // Usuarios predefinidos con tipo
 const usuarios = [
   { usuario: "jair", clave: "abcd", tipo: "yo" },
@@ -186,27 +199,28 @@ app.get("/consultar-por-correo/:correo", async (req, res) => {
 });
 
 // Guarda datos de confirmación
-app.post("/guardar-confirmacion", async (req, res) => {
-  const { codigo, nombre, telefono, ciudad, combo } = req.body;
+app.post('/guardar-confirmacion', async (req, res) => {
+  const { nombre, telefono, ciudad, combo, codigo } = req.body;
 
-  if (!codigo || !nombre || !telefono || !ciudad || !combo) {
-    return res.status(400).json({ error: "Faltan campos obligatorios" });
+  if (!nombre || !telefono || !ciudad || !combo || !codigo) {
+    return res.status(400).json({ error: 'Faltan campos' });
   }
 
   try {
-    const confirmacion = new Confirmacion({
-      codigo,
+    const nuevaConfirmacion = new Confirmacion({
       nombre,
       telefono,
       ciudad,
       combo,
+      codigo,
       fecha: new Date()
     });
 
-    await confirmacion.save();
-    res.status(200).json({ mensaje: "Datos guardados correctamente" });
-  } catch (error) {
-    console.error("Error al guardar confirmación:", error);
-    res.status(500).json({ error: "Error al guardar en la base de datos" });
+    await nuevaConfirmacion.save();
+
+    res.status(200).json({ mensaje: 'Confirmación guardada correctamente' });
+  } catch (err) {
+    console.error('Error al guardar confirmación:', err);
+    res.status(500).json({ error: 'Error en el servidor' });
   }
 });
