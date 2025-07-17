@@ -86,6 +86,12 @@ async function generarNumerosAleatorios(cantidad) {
 app.post("/guardar-codigo", async (req, res) => {
   const { codigo, combo, correo } = req.body;
 
+// Validación del correo
+  const correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
+  if (!correoValido) {
+    return res.status(400).json({ mensaje: "Correo inválido" });
+  }
+  
   const cantidad = parseInt(combo);
   if (isNaN(cantidad) || cantidad <= 0 || cantidad > 999) {
     return res.status(400).json({ mensaje: "Combo inválido" });
