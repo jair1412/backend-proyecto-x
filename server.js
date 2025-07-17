@@ -91,6 +91,17 @@ app.post("/guardar-codigo", async (req, res) => {
   if (!correoValido) {
     return res.status(400).json({ mensaje: "Correo inválido" });
   }
+
+  // Validación de formato del código: debe empezar con PX y tener 6 dígitos (PX123456)
+if (!/^PX\d{6}$/.test(codigo)) {
+  return res.status(400).json({ mensaje: "Código inválido. Debe tener el formato PX123456." });
+}
+
+// Validación de código duplicado
+  const existente = await Codigo.findOne({ codigo });
+  if (existente) {
+    return res.status(400).json({ mensaje: "Este código ya ha sido registrado." });
+  }
   
   const cantidad = parseInt(combo);
   if (isNaN(cantidad) || cantidad <= 0 || cantidad > 999) {
