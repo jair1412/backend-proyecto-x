@@ -185,3 +185,28 @@ app.get("/consultar-por-correo/:correo", async (req, res) => {
   }
 });
 
+// Guarda datos de confirmación
+app.post("/guardar-confirmacion", async (req, res) => {
+  const { codigo, nombre, telefono, ciudad, combo } = req.body;
+
+  if (!codigo || !nombre || !telefono || !ciudad || !combo) {
+    return res.status(400).json({ error: "Faltan campos obligatorios" });
+  }
+
+  try {
+    const confirmacion = new Confirmacion({
+      codigo,
+      nombre,
+      telefono,
+      ciudad,
+      combo,
+      fecha: new Date()
+    });
+
+    await confirmacion.save();
+    res.status(200).json({ mensaje: "Datos guardados correctamente" });
+  } catch (error) {
+    console.error("Error al guardar confirmación:", error);
+    res.status(500).json({ error: "Error al guardar en la base de datos" });
+  }
+});
