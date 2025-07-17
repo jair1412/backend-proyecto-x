@@ -147,12 +147,19 @@ app.listen(PORT, () => {
 
 // consultar números por correo
 app.get("/consultar-por-correo/:correo", async (req, res) => {
-  const correo = req.params.correo;
-
   try {
-    const pedidos = await db.collection("pedidos").find({ correo }).toArray();
-    res.json(pedidos);
+    const { correo } = req.params;
+    const registro = await collection.findOne({ correo });
+
+    if (!registro) {
+      return res.status(404).json({ error: "Correo no encontrado" });
+    }
+
+    res.json({
+      codigo: registro.codigo,
+      numeros: registro.numeros,
+    });
   } catch (error) {
-    res.status(500).json({ error: "Error al consultar" });
+    res.status(500).json({ error: "Error en la consulta" });
   }
 });
