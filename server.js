@@ -230,7 +230,7 @@ app.get('/verificar-codigo/:codigo', async (req, res) => {
   const { codigo } = req.params;
 
   try {
-    const resultado = await db.collection('confirmacions').findOne({ codigo });
+    const resultado = await Confirmacion.findOne({ codigo });
 
     if (!resultado) {
       return res.status(404).json({ mensaje: 'Código no encontrado' });
