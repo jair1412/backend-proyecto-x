@@ -34,6 +34,8 @@ const confirmacionSchema = new mongoose.Schema({
   ciudad: String,
   combo: Number,
   codigo: String,
+  correo: String,
+  numeros: [String], // números como strings de 3 cifras (ej: "004")
   fecha: { type: Date, default: Date.now }
 });
 
@@ -198,32 +200,61 @@ app.get("/consultar-por-correo/:correo", async (req, res) => {
   }
 });
 
-// Guarda datos de confirmación
 app.post('/guardar-confirmacion', async (req, res) => {
-  const { nombre, telefono, ciudad, combo, codigo } = req.body;
+  const { nombre, telefono, ciudad, combo, codigo, correo } = req.body;
 
-  if (!nombre || !telefono || !ciudad || !combo || !codigo) {
+  if (!nombre || !telefono || !ciudad || !combo || !codigo || !correo) {
     return res.status(400).json({ error: 'Faltan campos' });
   }
 
   try {
+    // Traer todos los números ya usados
+    const confirmados = await Confirmacion.find({});
+    const usados = new Set(confirmados.flatMap(c => c.numeros || []));
+
+    const cantidadNumeros = parseInt(combo);
+    if (isNaN(cantidadNumeros) || cantidadNumeros <= 0) {
+      return res.status(400).json({ error: 'Combo inválido' });
+    }
+
+    // Verifica que haya suficientes números
+    if (usados.size + cantidadNumeros > 1000) {
+      return res.status(400).json({ error: "Ya no hay suficientes números disponibles" });
+    }
+
+    // Generar números de 3 cifras únicos
+    const nuevos = new Set();
+    while (nuevos.size < cantidadNumeros) {
+      const n = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+      if (!usados.has(n)) {
+        nuevos.add(n);
+        usados.add(n);
+      }
+    }
+
     const nuevaConfirmacion = new Confirmacion({
       nombre,
       telefono,
       ciudad,
       combo,
       codigo,
+      correo,
+      numeros: Array.from(nuevos),
       fecha: new Date()
     });
 
     await nuevaConfirmacion.save();
 
-    res.status(200).json({ mensaje: 'Confirmación guardada correctamente' });
+    res.status(200).json({
+      mensaje: 'Confirmación guardada con números únicos',
+      numeros: nuevaConfirmacion.numeros
+    });
   } catch (err) {
     console.error('Error al guardar confirmación:', err);
     res.status(500).json({ error: 'Error en el servidor' });
   }
 });
+
 
 // Verificar código en la colección 'confirmacions'
 app.get('/verificar-codigo/:codigo', async (req, res) => {
@@ -254,17 +285,12 @@ app.post("/enviar-numeros", async (req, res) => {
   const { codigo } = req.body;
 
   try {
-    const confirmacion = await db.collection("confirmacions").findOne({ codigo });
+    const confirmacion = await Confirmacion.findOne({ codigo });
 
     if (!confirmacion) {
       return res.status(404).json({ mensaje: "Código no encontrado en confirmacions" });
     }
 
-    const infoCodigo = await db.collection("codigos").findOne({ codigo });
-
-    if (!infoCodigo || !infoCodigo.numeros) {
-      return res.status(404).json({ mensaje: "Números no encontrados para este código" });
-    }
 
     // ⚙️ Configura tu transporte de correo
     const transporter = nodemailer.createTransport({
@@ -279,8 +305,8 @@ app.post("/enviar-numeros", async (req, res) => {
       Hola ${confirmacion.nombre}, gracias por tu compra.
 
       Código: ${codigo}
-      Combo: ${infoCodigo.combo}
-      Números asignados: ${infoCodigo.numeros.join(", ")}
+      Combo: ${confirmacion.combo}
+      Números asignados: ${confirmacion.numeros.join(", ")}
 
       ¡Mucha suerte!
     `;
@@ -288,7 +314,7 @@ app.post("/enviar-numeros", async (req, res) => {
     // Enviar correo
     await transporter.sendMail({
       from: '"Sortech" <tomalajair77@gmail.com>',  // Cambia esto
-      to: infoCodigo.correo,                      // o modifica para usar un campo email real
+      to: confirmacion.correo,                    // o modifica para usar un campo email real
       subject: "Tus números del sorteo",
       text: mensaje
     });
