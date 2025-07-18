@@ -224,3 +224,26 @@ app.post('/guardar-confirmacion', async (req, res) => {
     res.status(500).json({ error: 'Error en el servidor' });
   }
 });
+
+// Verificar código en la colección 'confirmacions'
+app.get('/verificar-codigo/:codigo', async (req, res) => {
+  const { codigo } = req.params;
+
+  try {
+    const resultado = await db.collection('confirmacions').findOne({ codigo });
+
+    if (!resultado) {
+      return res.status(404).json({ mensaje: 'Código no encontrado' });
+    }
+
+    res.json({
+      nombre: resultado.nombre,
+      combo: resultado.combo,
+      telefono: resultado.telefono
+    });
+  } catch (error) {
+    console.error('Error al verificar código:', error);
+    res.status(500).json({ mensaje: 'Error interno del servidor' });
+  }
+});
+
