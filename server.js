@@ -247,3 +247,60 @@ app.get('/verificar-codigo/:codigo', async (req, res) => {
   }
 });
 
+//ENVIAR NÚMEROS AL CORREO
+const nodemailer = require("nodemailer");
+
+app.post("/enviar-numeros", async (req, res) => {
+  const { codigo } = req.body;
+
+  try {
+    const confirmacion = await db.collection("confirmacions").findOne({ codigo });
+
+    if (!confirmacion) {
+      return res.status(404).json({ mensaje: "Código no encontrado en confirmacions" });
+    }
+
+    const infoCodigo = await db.collection("codigos").findOne({ codigo });
+
+    if (!infoCodigo || !infoCodigo.numeros) {
+      return res.status(404).json({ mensaje: "Números no encontrados para este código" });
+    }
+
+    // ⚙️ Configura tu transporte de correo
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "tomalajair77@gmail.com",     // Cambia esto
+        pass: "qpfl aoxj auqa grhx"  // Usa app password si tienes 2FA
+      }
+    });
+
+    const mensaje = `
+      Hola ${confirmacion.nombre}, gracias por tu compra.
+
+      Código: ${codigo}
+      Combo: ${infoCodigo.combo}
+      Números asignados: ${infoCodigo.numeros.join(", ")}
+
+      ¡Mucha suerte!
+    `;
+
+    // Enviar correo
+    await transporter.sendMail({
+      from: '"Sortech" <tomalajair77@gmail.com>',  // Cambia esto
+      to: datos.correo,                           // o modifica para usar un campo email real
+      subject: "Tus números del sorteo",
+      text: mensaje
+    });
+
+    res.json({
+      mensaje: "Correo enviado correctamente",
+      nombre: confirmacion.nombre,
+      telefono: confirmacion.telefono,
+      combo: infoCodigo.combo
+    });
+  } catch (error) {
+    console.error("Error enviando correo:", error);
+    res.status(500).json({ mensaje: "Error al procesar la solicitud" });
+  }
+});
