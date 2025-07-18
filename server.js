@@ -288,7 +288,7 @@ app.post("/enviar-numeros", async (req, res) => {
     // Enviar correo
     await transporter.sendMail({
       from: '"Sortech" <tomalajair77@gmail.com>',  // Cambia esto
-      to: datos.correo,                           // o modifica para usar un campo email real
+      to: infoCodigo.correo,                      // o modifica para usar un campo email real
       subject: "Tus números del sorteo",
       text: mensaje
     });
