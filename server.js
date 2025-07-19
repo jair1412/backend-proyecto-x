@@ -10,23 +10,6 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log("✅ Conectado a MongoDB"))
 .catch(err => console.error("❌ Error al conectar a MongoDB:", err));
 
-// Definición del esquema y modelo
-const codigoSchema = new mongoose.Schema({
-  codigo: String,
-  numeros: [Number],
-  correo: String,
-  confirmado: { type: Boolean, default: false }
-});
-
-const Codigo = mongoose.model("Codigo", codigoSchema);
-
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(cors());
-app.use(bodyParser.json());
-
 //guardar datos de confirmación
 const confirmacionSchema = new mongoose.Schema({
   nombre: String,
@@ -70,101 +53,11 @@ app.get('/', (req, res) => {
   res.send('Backend funcionando');
 });
 
-// Función para generar números únicos no repetidos
-async function generarNumerosAleatorios(cantidad) {
-  const usados = new Set();
-
-  const codigosExistentes = await Codigo.find({});
-  codigosExistentes.forEach(c => c.numeros.forEach(n => usados.add(n)));
-
-  const disponibles = [];
-  for (let i = 0; i <= 999; i++) {
-    if (!usados.has(i)) {
-      disponibles.push(i);
-    }
-  }
-
-  if (disponibles.length < cantidad) {
-    throw new Error("No hay suficientes números disponibles");
-  }
-
-  const resultado = [];
-  for (let i = 0; i < cantidad; i++) {
-    const idx = Math.floor(Math.random() * disponibles.length);
-    resultado.push(disponibles.splice(idx, 1)[0]);
-  }
-
-  return resultado.sort((a, b) => a - b);
-}
-
-// Ruta mejorada: guarda código con generación de números
-app.post("/guardar-codigo", async (req, res) => {
-  const { codigo, combo, correo } = req.body;
-
-// Validación del correo
-  const correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
-  if (!correoValido) {
-    return res.status(400).json({ mensaje: "Correo inválido" });
-  }
-
-  // Validación de formato del código: debe empezar con PX y tener 6 dígitos (PX123456)
-if (!/^PX\d{6}$/.test(codigo)) {
-  return res.status(400).json({ mensaje: "Código inválido. Debe tener el formato PX123456." });
-}
-
-// Validación de código duplicado
-  const existente = await Codigo.findOne({ codigo });
-  if (existente) {
-    return res.status(400).json({ mensaje: "Este código ya ha sido registrado." });
-  }
-  
-  const cantidad = parseInt(combo);
-  if (isNaN(cantidad) || cantidad <= 0 || cantidad > 999) {
-    return res.status(400).json({ mensaje: "Combo inválido" });
-  }
-
-  try {
-    const numeros = await generarNumerosAleatorios(cantidad);
-    const nuevoCodigo = new Codigo({ codigo, numeros, correo });
-    await nuevoCodigo.save();
-    res.json({ mensaje: `Código guardado con ${cantidad} números`, numeros });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ mensaje: "Error guardando el código" });
-  }
-});
-
-
-// Ruta para confirmar código y (opcional) enviar correo
-app.post("/confirmar-codigo", async (req, res) => {
-  const { codigo } = req.body;
-  try {
-    const codigoDoc = await Codigo.findOne({ codigo });
-    if (!codigoDoc) {
-      return res.status(404).json({ error: "Código no encontrado" });
-    }
-    if (codigoDoc.confirmado) {
-      return res.status(400).json({ error: "Código ya confirmado" });
-    }
-
-    // Cambia el estado a confirmado
-    codigoDoc.confirmado = true;
-    await codigoDoc.save();
-
-    // Aquí se puede agregar el envío de correo, ejemplo abajo
-
-    res.json({ mensaje: "Código confirmado correctamente" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error confirmando el código" });
-  }
-});
-
 // Ruta para obtener progreso total de números vendidos
 app.get("/progreso", async (req, res) => {
   try {
-    const codigosConfirmados = await Codigo.find({ confirmado: true });
-    const totalNumeros = codigosConfirmados.reduce((acc, c) => acc + c.numeros.length, 0);
+    const confirmados = await Confirmacion.find({});
+    const totalNumeros = confirmados.reduce((acc, c) => acc + c.numeros.length, 0);
     res.json({ totalNumeros });
   } catch (error) {
     console.error(error);
@@ -181,7 +74,7 @@ app.listen(PORT, () => {
 app.get("/consultar-por-correo/:correo", async (req, res) => {
   try {
     const { correo } = req.params;
-    const registros = await Codigo.find({ correo });
+    const registros = await Confirmacion.find({ correo });
 
     if (!registros || registros.length === 0) {
       return res.status(404).json({ error: "Correo no encontrado" });
@@ -296,8 +189,8 @@ app.post("/enviar-numeros", async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "tomalajair77@gmail.com",     // Cambia esto
-        pass: "qpfl aoxj auqa grhx"  // Usa app password si tienes 2FA
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
       }
     });
 
@@ -323,7 +216,7 @@ app.post("/enviar-numeros", async (req, res) => {
       mensaje: "Correo enviado correctamente",
       nombre: confirmacion.nombre,
       telefono: confirmacion.telefono,
-      combo: infoCodigo.combo
+      combo: confirmacion.combo
     });
   } catch (error) {
     console.error("Error enviando correo:", error);
