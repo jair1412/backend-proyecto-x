@@ -223,3 +223,11 @@ app.post("/enviar-numeros", async (req, res) => {
     res.status(500).json({ mensaje: "Error al procesar la solicitud" });
   }
 });
+
+
+app.get("/test-env", (req, res) => {
+  res.send({
+    email: process.env.EMAIL_USER ? "✅ Cargado" : "❌ No encontrado",
+    pass: process.env.EMAIL_PASS ? "✅ Cargado" : "❌ No encontrado"
+  });
+});
