@@ -75,6 +75,7 @@ app.get("/progreso", async (req, res) => {
   }
 });
 
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Servidor iniciado en el puerto ${PORT}`);
@@ -216,8 +217,8 @@ app.post("/enviar-numeros", async (req, res) => {
 
     // Enviar correo
     await transporter.sendMail({
-      from: '"Sortech" <tomalajair77@gmail.com>',  // Cambia esto
-      to: confirmacion.correo,                    // o modifica para usar un campo email real
+      from: `"Sortech" <${process.env.EMAIL_USER}>`  // Cambia esto
+      to: confirmacion.correo,                      // o modifica para usar un campo email real
       subject: "Tus números del sorteo",
       text: mensaje
     });
