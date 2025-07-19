@@ -229,7 +229,7 @@ app.post("/enviar-numeros", async (req, res) => {
     });
   } catch (error) {
     console.error("Error enviando correo:", error);
-    res.status(500).json({enviado: false, mensaje: "Error al procesar la solicitud" });
+    res.status(500).json({ enviado: false, mensaje: "Error al procesar la solicitud" });
   }
 });
 
