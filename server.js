@@ -53,6 +53,14 @@ app.get('/', (req, res) => {
   res.send('Backend funcionando');
 });
 
+app.get("/test-env", (req, res) => {
+  res.send({
+    email: process.env.EMAIL_USER ? "✅ Cargado" : "❌ No encontrado",
+    pass: process.env.EMAIL_PASS ? "✅ Cargado" : "❌ No encontrado"
+  });
+});
+
+
 // Ruta para obtener progreso total de números vendidos
 app.get("/progreso", async (req, res) => {
   try {
@@ -224,10 +232,3 @@ app.post("/enviar-numeros", async (req, res) => {
   }
 });
 
-
-app.get("/test-env", (req, res) => {
-  res.send({
-    user: process.env.EMAIL_USER ? "✅ Cargado" : "❌ No encontrado",
-    pass: process.env.EMAIL_PASS ? "✅ Cargado" : "❌ No encontrado"
-  });
-});
