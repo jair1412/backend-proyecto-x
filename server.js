@@ -37,10 +37,20 @@ const Confirmacion = mongoose.model('Confirmacion', confirmacionSchema);
 
 
 // Usuarios predefinidos con tipo
+// Usuarios predefinidos con tipo usando variables de entorno
 const usuarios = [
-  { usuario: "jair", clave: "abcd", tipo: "yo" },
-  { usuario: "admin", clave: "1412", tipo: "otros" }
+  {
+    usuario: process.env.ADMIN1_USER,
+    clave: process.env.ADMIN1_PASS,
+    tipo: process.env.ADMIN1_TYPE
+  },
+  {
+    usuario: process.env.ADMIN2_USER,
+    clave: process.env.ADMIN2_PASS,
+    tipo: process.env.ADMIN2_TYPE
+  }
 ];
+
 
 // Ruta para login
 app.post("/login", (req, res) => {
