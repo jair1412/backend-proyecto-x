@@ -217,11 +217,11 @@ app.post("/enviar-numeros", async (req, res) => {
 
     // Enviar correo
     await transporter.sendMail({
-      from: `"Sortech" <${process.env.EMAIL_USER}>`  // Cambia esto
-      to: confirmacion.correo,                      // o modifica para usar un campo email real
+      from: `"Sortech" <${process.env.EMAIL_USER}>`,
+      to: confirmacion.correo,
       subject: "Tus números del sorteo",
       text: mensaje
-    });
+      });
 
     res.json({
       mensaje: "Correo enviado correctamente",
