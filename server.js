@@ -223,26 +223,37 @@ app.post("/enviar-numeros", async (req, res) => {
     `;
 
     // Enviar correo
-    await transporter.sendMail({
+   await transporter.sendMail({
   from: `"Sortech" <${process.env.EMAIL_USER}>`,
   to: confirmacion.correo,
   subject: "🎉 ¡Aquí están tus números del sorteo!",
   html: `
-    <div style="font-family: Arial, sans-serif; color: #333; padding: 20px;">
-      <h2 style="color: #1e90ff;">¡Gracias por tu compra, ${confirmacion.nombre}!</h2>
-      <p><strong>Código:</strong> ${codigo}</p>
-      <p><strong>Combo:</strong> ${confirmacion.combo}</p>
-      <p><strong>Números asignados:</strong></p>
-      <div style="background: #f0f8ff; padding: 10px; border-radius: 8px; font-size: 18px; font-weight: bold;">
-        ${confirmacion.numeros.join(", ")}
+    <div style="font-family: Arial, sans-serif; color: #333; padding: 0; margin: 0; background: #ffffff;">
+      
+      <!-- Encabezado -->
+      <div style="background-color: #1a1a1a; padding: 20px; text-align: center;">
+        <img src="https://i.imgur.com/vPuZxhR.png" alt="Logo Sortech" style="height: 60px;" />
       </div>
-      <p>¡Te deseamos mucha suerte en el sorteo!</p>
-      <img src="https://i.imgur.com/vPuZxhR.png" alt="Logo Sortech" style="width: 150px; margin-top: 20px;" />
-      <p style="font-size: 12px; color: #999;">Este correo fue enviado automáticamente por el sistema Sortech.</p>
+
+      <!-- Contenido principal -->
+      <div style="padding: 20px;">
+        <h2 style="color: #1e90ff;">¡Gracias por tu compra, ${confirmacion.nombre}!</h2>
+        <p><strong>Código:</strong> ${codigo}</p>
+        <p><strong>Combo:</strong> ${confirmacion.combo}</p>
+        <p><strong>Números asignados:</strong></p>
+        <div style="background: #f0f8ff; padding: 10px; border-radius: 8px; font-size: 18px; font-weight: bold;">
+          ${confirmacion.numeros.join(", ")}
+        </div>
+        <p style="margin-top: 20px;">¡Te deseamos mucha suerte en el sorteo!</p>
+      </div>
+
+      <!-- Pie de página -->
+      <div style="padding: 10px 20px; text-align: center; font-size: 12px; color: #999;">
+        Este correo fue enviado automáticamente por el sistema Sortech.
+      </div>
     </div>
   `
 });
-
 
     res.json({
       enviado: true,
@@ -256,6 +267,7 @@ app.post("/enviar-numeros", async (req, res) => {
     res.status(500).json({ enviado: false, mensaje: "Error al procesar la solicitud" });
   }
 });
+
 // buscar numero
 app.get("/buscar-por-numero/:numero", async (req, res) => {
   const { numero } = req.params;
