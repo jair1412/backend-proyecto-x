@@ -256,4 +256,25 @@ app.post("/enviar-numeros", async (req, res) => {
     res.status(500).json({ enviado: false, mensaje: "Error al procesar la solicitud" });
   }
 });
+// buscar numero
+app.get("/buscar-por-numero/:numero", async (req, res) => {
+  const { numero } = req.params;
 
+  try {
+    const documento = await db.collection("confirmacions").findOne({
+      numeros: { $in: [parseInt(numero)] }
+    });
+
+    if (!documento) {
+      return res.status(404).json({ mensaje: "Número no encontrado" });
+    }
+
+    res.json({
+      nombre: documento.nombre,
+      correo: documento.correo,
+      telefono: documento.telefono
+    });
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error interno del servidor" });
+  }
+});
