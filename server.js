@@ -261,9 +261,9 @@ app.get("/buscar-por-numero/:numero", async (req, res) => {
   const { numero } = req.params;
 
   try {
-    const documento = await db.collection("confirmacions").findOne({
-      numeros: { $in: [parseInt(numero)] }
-    });
+    const documento = await Confirmacion.findOne({
+  numeros: numero.padStart(3, "0")
+});
 
     if (!documento) {
       return res.status(404).json({ mensaje: "Número no encontrado" });
