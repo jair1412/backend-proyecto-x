@@ -232,7 +232,7 @@ app.post("/enviar-numeros", async (req, res) => {
       
       <!-- Encabezado -->
       <div style="background-color: #1a1a1a; padding: 20px; text-align: center;">
-        <img src="https://i.imgur.com/vPuZxhR.png" alt="Logo Sortech" style="height: 60px;" />
+        <img src="https://Jairtc14.github.io/Proyecto-X-1.1/img/logo-sortech.png" alt="Logo Sortech" style="height: 60px;" />
       </div>
 
       <!-- Contenido principal -->
