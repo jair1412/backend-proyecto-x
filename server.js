@@ -189,6 +189,20 @@ app.get('/verificar-codigo/:codigo', async (req, res) => {
   }
 });
 
+// ✅ Ruta ligera para solo verificar si un código ya existe
+app.get('/codigo-existe/:codigo', async (req, res) => {
+  const { codigo } = req.params;
+
+  try {
+    const existe = await Confirmacion.exists({ codigo });
+    res.json({ existe: !!existe });
+  } catch (error) {
+    console.error('Error al verificar si el código existe:', error);
+    res.status(500).json({ mensaje: 'Error interno del servidor' });
+  }
+});
+
+
 //ENVIAR NÚMEROS AL CORREO
 const nodemailer = require("nodemailer");
 
