@@ -30,13 +30,12 @@ const confirmacionSchema = new mongoose.Schema({
   codigo: String,
   correo: String,
   numeros: [String], // números como strings de 3 cifras (ej: "004")
+  confirmado: { type: Boolean, default: false }, // 🆕 NUEVO CAMPO
   fecha: { type: Date, default: Date.now }
 });
 
 const Confirmacion = mongoose.model('Confirmacion', confirmacionSchema);
 
-
-// Usuarios predefinidos con tipo
 // Usuarios predefinidos con tipo usando variables de entorno
 const usuarios = [
   {
@@ -50,7 +49,6 @@ const usuarios = [
     tipo: process.env.ADMIN2_TYPE
   }
 ];
-
 
 // Ruta para login
 app.post("/login", (req, res) => {
@@ -70,10 +68,11 @@ app.post("/login", (req, res) => {
   }
 });
 
-// Ruta para obtener progreso total de números vendidos
+// 🔄 MODIFICADO: Ruta para obtener progreso SOLO de números confirmados
 app.get("/progreso", async (req, res) => {
   try {
-    const confirmados = await Confirmacion.find({});
+    // Solo contar códigos que han sido confirmados
+    const confirmados = await Confirmacion.find({ confirmado: true });
     const totalNumeros = confirmados.reduce((acc, c) => acc + c.numeros.length, 0);
     res.json({ totalNumeros });
   } catch (error) {
@@ -119,8 +118,8 @@ app.post('/guardar-confirmacion', async (req, res) => {
   }
 
   try {
-    // Traer todos los números ya usados
-    const confirmados = await Confirmacion.find({});
+    // 🔄 MODIFICADO: Solo contar números de códigos confirmados para la validación
+    const confirmados = await Confirmacion.find({ confirmado: true });
     const usados = new Set(confirmados.flatMap(c => c.numeros || []));
 
     const cantidadNumeros = parseInt(combo);
@@ -151,6 +150,7 @@ app.post('/guardar-confirmacion', async (req, res) => {
       codigo,
       correo,
       numeros: Array.from(nuevos),
+      confirmado: false, // 🆕 Se crea como NO confirmado
       fecha: new Date()
     });
 
@@ -165,7 +165,6 @@ app.post('/guardar-confirmacion', async (req, res) => {
     res.status(500).json({ error: 'Error en el servidor' });
   }
 });
-
 
 // Verificar código en la colección 'confirmacions'
 app.get('/verificar-codigo/:codigo', async (req, res) => {
@@ -202,10 +201,10 @@ app.get('/codigo-existe/:codigo', async (req, res) => {
   }
 });
 
-
 //ENVIAR NÚMEROS AL CORREO
 const nodemailer = require("nodemailer");
 
+// 🔄 MODIFICADO: Marcar como confirmado al enviar números
 app.post("/enviar-numeros", async (req, res) => {
   const { codigo } = req.body;
 
@@ -216,25 +215,20 @@ app.post("/enviar-numeros", async (req, res) => {
       return res.status(404).json({ mensaje: "Código no encontrado en confirmacions" });
     }
 
+    // 🆕 MARCAR COMO CONFIRMADO
+    await Confirmacion.updateOne(
+      { codigo },
+      { confirmado: true }
+    );
 
     // ⚙️ Configura tu transporte de correo
-    const transporter = nodemailer.createTransport({
+    const transporter = nodemailer.createTransporter({
       service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
       }
     });
-
-    const mensaje = `
-      Hola ${confirmacion.nombre}, gracias por tu compra.
-
-      Código: ${codigo}
-      Combo: ${confirmacion.combo}
-      Números asignados: ${confirmacion.numeros.join(", ")}
-
-      ¡Mucha suerte!
-    `;
 
     // Enviar correo
    await transporter.sendMail({
