@@ -298,3 +298,123 @@ app.get("/buscar-por-numero/:numero", async (req, res) => {
     res.status(500).json({ mensaje: "Error interno del servidor" });
   }
 });
+
+
+// Endpoint para formulario de contacto
+app.post('/contacto', async (req, res) => {
+  try {
+    const { nombre, correo, mensaje } = req.body;
+
+    // Validación básica
+    if (!nombre || !correo || !mensaje) {
+      return res.status(400).json({ 
+        enviado: false, 
+        mensaje: "Todos los campos son obligatorios" 
+      });
+    }
+
+    // ⚙️ Usar el mismo transporter que ya tienes
+    const transporter = nodemailer.createTransporter({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    // Enviar correo de contacto a TU email
+    await transporter.sendMail({
+      from: `"Formulario Contacto - Sortech" <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_USER, // ← Tu email donde recibirás los mensajes
+      subject: `📧 Nuevo mensaje de contacto de ${nombre}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #333; padding: 0; margin: 0; background: #ffffff;">
+          
+          <!-- Encabezado -->
+          <div style="background-color: #1a1a1a; padding: 20px; text-align: center;">
+            <img src="https://Jairtc14.github.io/Proyecto-X-1.1/img/logo-sortech.png" alt="Logo Sortech" style="height: 60px;" />
+            <h2 style="color: #ffffff; margin: 10px 0 0 0;">Nuevo Mensaje de Contacto</h2>
+          </div>
+          
+          <!-- Contenido principal -->
+          <div style="padding: 20px;">
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+              <h3 style="color: #1e90ff; margin-top: 0;">Información del Contacto:</h3>
+              <p><strong>👤 Nombre:</strong> ${nombre}</p>
+              <p><strong>📧 Email:</strong> ${correo}</p>
+            </div>
+            
+            <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; border-left: 4px solid #1e90ff;">
+              <h3 style="color: #333; margin-top: 0;">💬 Mensaje:</h3>
+              <p style="line-height: 1.6; white-space: pre-wrap;">${mensaje}</p>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 10px; background: #e8f5e8; border-radius: 5px;">
+              <small style="color: #666;">
+                📅 Recibido el: ${new Date().toLocaleString('es-ES')}
+              </small>
+            </div>
+          </div>
+          
+          <!-- Pie de página -->
+          <div style="padding: 10px 20px; text-align: center; font-size: 12px; color: #999; background: #f8f9fa;">
+            Este correo fue enviado automáticamente desde el formulario de contacto de Sortech.
+          </div>
+        </div>
+      `
+    });
+
+    // OPCIONAL: Enviar correo de confirmación al usuario
+    await transporter.sendMail({
+      from: `"Sortech" <${process.env.EMAIL_USER}>`,
+      to: correo,
+      subject: "✅ Hemos recibido tu mensaje - Sortech",
+      html: `
+        <div style="font-family: Arial, sans-serif; color: #333; padding: 0; margin: 0; background: #ffffff;">
+          
+          <!-- Encabezado -->
+          <div style="background-color: #1a1a1a; padding: 20px; text-align: center;">
+            <img src="https://Jairtc14.github.io/Proyecto-X-1.1/img/logo-sortech.png" alt="Logo Sortech" style="height: 60px;" />
+          </div>
+          
+          <!-- Contenido principal -->
+          <div style="padding: 20px;">
+            <h2 style="color: #1e90ff;">¡Gracias por contactarnos, ${nombre}!</h2>
+            <p>Hemos recibido tu mensaje y te responderemos lo antes posible.</p>
+            
+            <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #333;">📋 Resumen de tu mensaje:</h3>
+              <p><strong>Asunto:</strong> Consulta general</p>
+              <p><strong>Mensaje:</strong></p>
+              <div style="background: #fff; padding: 10px; border-radius: 5px; border-left: 3px solid #1e90ff;">
+                ${mensaje.substring(0, 150)}${mensaje.length > 150 ? '...' : ''}
+              </div>
+            </div>
+            
+            <p>⏰ <strong>Tiempo de respuesta:</strong> Normalmente respondemos en 24-48 horas.</p>
+            <p>Si tu consulta es urgente, también puedes contactarnos por otros medios.</p>
+          </div>
+          
+          <!-- Pie de página -->
+          <div style="padding: 10px 20px; text-align: center; font-size: 12px; color: #999;">
+            Este correo fue enviado automáticamente por el sistema Sortech.
+          </div>
+        </div>
+      `
+    });
+
+    // Respuesta exitosa
+    res.json({
+      enviado: true,
+      mensaje: "Tu mensaje ha sido enviado correctamente. Te responderemos pronto.",
+      nombre: nombre
+    });
+
+  } catch (error) {
+    console.error("Error enviando correo de contacto:", error);
+    res.status(500).json({ 
+      enviado: false, 
+      mensaje: "Error al enviar el mensaje. Por favor, inténtalo de nuevo." 
+    });
+  }
+});
