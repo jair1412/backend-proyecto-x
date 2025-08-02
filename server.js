@@ -245,7 +245,7 @@ app.post("/enviar-numeros", async (req, res) => {
 
       <!-- Contenido principal -->
       <div style="padding: 20px;">
-        <h2 style="color: #1e90ff;">¡Gracias por tu compra, ${confirmacion.nombre}!</h2>
+        <h2 style="color: #1e90ff; text-align: center;">¡Gracias por tu compra, ${confirmacion.nombre}!</h2>
         <p><strong>Código:</strong> ${codigo}</p>
         <p><strong>Combo:</strong> ${confirmacion.combo}</p>
         <p><strong>Números asignados:</strong></p>
