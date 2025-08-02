@@ -248,7 +248,7 @@ app.post("/enviar-numeros", async (req, res) => {
         <h2 style="color: #1e90ff; text-align: center;">¡Gracias por tu compra, ${confirmacion.nombre}!</h2>
         <p><strong>Código:</strong> ${codigo}</p>
         <p><strong>Combo:</strong> ${confirmacion.combo}</p>
-        <p><strong>Números asignados:</strong></p>
+        <p style="text-align: center;"><strong>Números asignados:</strong></p>
         <div style="background: #f0f8ff; padding: 10px; border-radius: 8px; font-size: 18px; font-weight: bold;">
           ${confirmacion.numeros.join(", ")}
         </div>
@@ -418,3 +418,4 @@ app.post('/contacto', async (req, res) => {
     });
   }
 });
+
