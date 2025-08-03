@@ -6,8 +6,13 @@ const mongoose = require("mongoose");
 const app = express();
 
 // CORS - permitir origen de GitHub Pages
+const cors = require('cors');
 app.use(cors({
-  origin: ['https://jairtc14.github.io', 'https://sortechweb.com']
+  origin: [
+    'https://jairtc14.github.io',
+    'https://sortechweb.com',
+    'https://www.sortechweb.com'
+  ]
 }));
 
 app.use(bodyParser.json());
@@ -418,6 +423,7 @@ app.post('/contacto', async (req, res) => {
     });
   }
 });
+
 
 
 
