@@ -76,9 +76,11 @@ app.post("/login", (req, res) => {
 app.get("/progreso", async (req, res) => {
   try {
     // Solo contar códigos que han sido confirmados
+    const total = 1000;   // Total de números 
     const confirmados = await Confirmacion.find({ confirmado: true });
     const totalNumeros = confirmados.reduce((acc, c) => acc + c.numeros.length, 0);
-    res.json({ totalNumeros });
+    
+    res.json({ vendidos, total });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error obteniendo progreso" });
@@ -422,6 +424,7 @@ app.post('/contacto', async (req, res) => {
     });
   }
 });
+
 
 
 
