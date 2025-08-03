@@ -7,7 +7,7 @@ const app = express();
 
 // CORS - permitir origen de GitHub Pages
 app.use(cors({
-  origin: 'https://jairtc14.github.io'
+  origin: ['https://jairtc14.github.io', 'https://sortechweb.com']
 }));
 
 app.use(bodyParser.json());
@@ -418,5 +418,6 @@ app.post('/contacto', async (req, res) => {
     });
   }
 });
+
 
 
