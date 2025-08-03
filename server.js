@@ -78,7 +78,7 @@ app.get("/progreso", async (req, res) => {
     // Solo contar códigos que han sido confirmados
     const total = 1000;   // Total de números 
     const confirmados = await Confirmacion.find({ confirmado: true });
-    const totalNumeros = confirmados.reduce((acc, c) => acc + c.numeros.length, 0);
+    const vendidos = confirmados.reduce((acc, c) => acc + c.numeros.length, 0);
     
     res.json({ vendidos, total });
   } catch (error) {
