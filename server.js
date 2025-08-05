@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const app = express();
 const LIMITE_TOTAL = 150;    // números totales a vender
+const PORT = process.env.PORT || 3000;
 
 // CORS - permitir origen de GitHub Pages
 app.use(cors({
@@ -88,10 +89,17 @@ app.get("/progreso", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Servidor iniciado en el puerto ${PORT}`);
+// Ruta para mostrar todos los numeros en tabla
+app.get('/todos-los-numeros', async (req, res) => {
+  try {
+    const confirmados = await Confirmacion.find({ confirmado: true });
+    const todosNumeros = confirmados.flatMap(c => c.numeros);
+    const numerosUnicos = [...new Set(todosNumeros)].sort((a,b) => a - b);
+    res.json(numerosUnicos);
+  } catch (error) {
+    console.error('Error al obtener todos los números:', error);
+    res.status(500).json({ mensaje: 'Error al obtener los números.' });
+  }
 });
 
 // consultar números por correo
@@ -424,4 +432,8 @@ app.post('/contacto', async (req, res) => {
       mensaje: "Error al enviar el mensaje. Por favor, inténtalo de nuevo." 
     });
   }
+});
+
+app.listen(PORT, () => {
+  console.log(`Servidor iniciado en el puerto ${PORT}`);
 });
