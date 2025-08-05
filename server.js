@@ -89,18 +89,27 @@ app.get("/progreso", async (req, res) => {
   }
 });
 
-// Ruta para mostrar todos los numeros en tabla
+// Ruta para mostrar todos los numeros en tabla y contadores vendidos-faltantes
 app.get('/todos-los-numeros', async (req, res) => {
   try {
     const confirmados = await Confirmacion.find({ confirmado: true });
     const todosNumeros = confirmados.flatMap(c => c.numeros);
-    const numerosUnicos = [...new Set(todosNumeros)].sort((a,b) => a - b);
-    res.json(numerosUnicos);
+    const numerosUnicos = [...new Set(todosNumeros)].sort((a, b) => a - b);
+
+    const totalVendidos = numerosUnicos.length;
+    const totalRestantes = LIMITE_TOTAL - totalVendidos;
+
+    res.json({
+      numeros: numerosUnicos,
+      totalVendidos,
+      totalRestantes
+    });
   } catch (error) {
     console.error('Error al obtener todos los números:', error);
     res.status(500).json({ mensaje: 'Error al obtener los números.' });
   }
 });
+
 
 // consultar números por correo
 app.get("/consultar-por-correo/:correo", async (req, res) => {
@@ -437,3 +446,4 @@ app.post('/contacto', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor iniciado en el puerto ${PORT}`);
 });
+
