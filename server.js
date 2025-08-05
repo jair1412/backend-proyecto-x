@@ -33,7 +33,7 @@ const confirmacionSchema = new mongoose.Schema({
   combo: Number,
   codigo: String,
   correo: String,
-  numeros: [String], // números como strings de 3 cifras (ej: "004")
+  numeros: [Number], // números enteros 1 al 150
   confirmado: { type: Boolean, default: false }, // 🆕 NUEVO CAMPO
   fecha: { type: Date, default: Date.now }
 });
@@ -134,19 +134,20 @@ app.post('/guardar-confirmacion', async (req, res) => {
     }
 
     // Verifica que haya suficientes números
-    if (usados.size + cantidadNumeros > 1000) {
-      return res.status(400).json({ error: "Ya no hay suficientes números disponibles" });
-    }
+    const LIMITE_TOTAL = 150;
+if (usados.size + cantidadNumeros > LIMITE_TOTAL) {
+  return res.status(400).json({ error: 'Ya no hay suficientes números disponibles' });
+}
 
-    // Generar números de 3 cifras únicos
-    const nuevos = new Set();
-    while (nuevos.size < cantidadNumeros) {
-      const n = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
-      if (!usados.has(n)) {
-        nuevos.add(n);
-        usados.add(n);
-      }
-    }
+    // Generar números del 1 al 150 únicos
+const nuevos = new Set();
+while (nuevos.size < cantidadNumeros) {
+  const n = Math.floor(Math.random() * 150) + 1; // genera entre 1 y 150
+  if (!usados.has(n)) {
+    nuevos.add(n);
+    usados.add(n);
+  }
+}
 
     const nuevaConfirmacion = new Confirmacion({
       nombre,
@@ -156,7 +157,7 @@ app.post('/guardar-confirmacion', async (req, res) => {
       codigo,
       correo,
       numeros: Array.from(nuevos),
-      confirmado: false, // 🆕 Se crea como NO confirmado
+      confirmado: false, // Se crea como NO confirmado
       fecha: new Date()
     });
 
@@ -288,8 +289,8 @@ app.get("/buscar-por-numero/:numero", async (req, res) => {
 
   try {
     const documento = await Confirmacion.findOne({
-  numeros: numero.padStart(3, "0")
-});
+      numeros: Number(numero) // 👈 numeros enteros 1-150
+    });
 
     if (!documento) {
       return res.status(404).json({ mensaje: "Número no encontrado" });
@@ -424,6 +425,7 @@ app.post('/contacto', async (req, res) => {
     });
   }
 });
+
 
 
 
