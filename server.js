@@ -4,6 +4,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const app = express();
+const LIMITE_TOTAL = 150;    // números totales a vender
 
 // CORS - permitir origen de GitHub Pages
 app.use(cors({
@@ -76,7 +77,7 @@ app.post("/login", (req, res) => {
 app.get("/progreso", async (req, res) => {
   try {
     // Solo contar códigos que han sido confirmados
-    const total = 1000;   // Total de números 
+    const total = LIMITE_TOTAL;      // Total de números 
     const confirmados = await Confirmacion.find({ confirmado: true });
     const vendidos = confirmados.reduce((acc, c) => acc + c.numeros.length, 0);
     
@@ -134,7 +135,6 @@ app.post('/guardar-confirmacion', async (req, res) => {
     }
 
     // Verifica que haya suficientes números
-    const LIMITE_TOTAL = 150;
 if (usados.size + cantidadNumeros > LIMITE_TOTAL) {
   return res.status(400).json({ error: 'Ya no hay suficientes números disponibles' });
 }
@@ -425,10 +425,3 @@ app.post('/contacto', async (req, res) => {
     });
   }
 });
-
-
-
-
-
-
-
