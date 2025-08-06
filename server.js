@@ -443,7 +443,7 @@ app.post('/contacto', async (req, res) => {
   }
 });
 
- Ruta para acceso a metodo de pago "efectivo"
+ // Ruta para acceso a metodo de pago "efectivo"
 app.post('/verificar-codigo', (req, res) => {
     const { codigo } = req.body;
     const adminCode = process.env.ADMIN_CODE;
@@ -458,6 +458,7 @@ app.post('/verificar-codigo', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor iniciado en el puerto ${PORT}`);
 });
+
 
 
 
