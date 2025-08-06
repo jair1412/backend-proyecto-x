@@ -443,21 +443,22 @@ app.post('/contacto', async (req, res) => {
   }
 });
 
-// Ruta para acceso a metodo de pago "efectivo"
-//app.post('/verificar-codigo', (req, res) => {
-    //const { codigo } = req.body;
-    //const adminCode = process.env.ADMIN_CODE;
+ Ruta para acceso a metodo de pago "efectivo"
+app.post('/verificar-codigo', (req, res) => {
+    const { codigo } = req.body;
+    const adminCode = process.env.ADMIN_CODE;
 
-    //if (codigo === adminCode) {
-      //  res.json({ valido: true });
-    //} else {
-     //   res.json({ valido: false });
-   // }
-//});
+    if (codigo === adminCode) {
+        res.json({ valido: true });
+    } else {
+        res.json({ valido: false });
+    }
+});
 
 app.listen(PORT, () => {
   console.log(`Servidor iniciado en el puerto ${PORT}`);
 });
+
 
 
 
