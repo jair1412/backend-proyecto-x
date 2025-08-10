@@ -118,21 +118,44 @@ app.get("/consultar-por-correo/:correo", async (req, res) => {
     const registros = await Confirmacion.find({ correo });
 
     if (!registros || registros.length === 0) {
-      return res.status(404).json({ error: "Correo no encontrado" });
+      return res.status(404).json({
+        status: "no-encontrado",
+        mensaje: "No se encontraron códigos registrados para este correo."
+      });
     }
 
-    // Mapeamos los registros para devolver solo lo necesario
-    const resultado = registros.map(r => ({
+    
+    // Filtrar solo los registros confirmados
+    const confirmados = registros.filter(r => r.confirmado === true);
+
+    if (confirmados.length === 0) {
+      // Existe el correo, pero ningún número está confirmado
+      return res.json({
+        status: "pendiente",
+        mensaje: "Sus números no han sido confirmados, por favor envíe el comprobante de pago al WhatsApp."
+      });
+    }
+
+    // Solo devolver los confirmados
+    const resultado = confirmados.map(r => ({
       codigo: r.codigo,
       numeros: r.numeros
     }));
 
-    res.json(resultado);
+    res.json({
+      status: "ok",
+      data: resultado
+    });
+
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Error en la consulta" });
+    res.status(500).json({
+      status: "error",
+      mensaje: "Error en la consulta"
+    });
   }
 });
+
 
 app.post('/guardar-confirmacion', async (req, res) => {
   const { nombre, telefono, ciudad, combo, codigo, correo } = req.body;
@@ -458,6 +481,7 @@ app.post('/verificar-codigo', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor iniciado en el puerto ${PORT}`);
 });
+
 
 
 
