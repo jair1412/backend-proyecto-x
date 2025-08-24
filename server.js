@@ -478,9 +478,138 @@ app.post('/verificar-codigo', (req, res) => {
     }
 });
 
+
+
+// 🆕 NUEVA RUTA: Verificar elegibilidad para sorteos
+app.get('/verificar-sorteo/:codigo', async (req, res) => {
+  const { codigo } = req.params;
+
+  try {
+    const resultado = await Confirmacion.findOne({ codigo });
+
+    if (!resultado) {
+      return res.status(404).json({ 
+        elegible: false,
+        razon: 'codigo_no_encontrado',
+        mensaje: 'El código ingresado no existe en nuestros registros.',
+        datos: null
+      });
+    }
+
+    // Verificar si el código está confirmado
+    if (!resultado.confirmado) {
+      return res.status(400).json({
+        elegible: false,
+        razon: 'no_confirmado',
+        mensaje: 'Tu pedido aún no ha sido confirmado. Por favor envía tu comprobante de pago al WhatsApp.',
+        datos: {
+          codigo: resultado.codigo,
+          nombre: resultado.nombre,
+          telefono: resultado.telefono,
+          combo: resultado.combo,
+          estado: 'Pendiente de confirmación'
+        }
+      });
+    }
+
+    // ✅ Elegible para sorteo - código confirmado
+    const fechaFormateada = new Date(resultado.fecha).toLocaleDateString('es-EC', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    res.json({
+      elegible: true,
+      razon: 'codigo_valido',
+      mensaje: 'Código válido y elegible para participar en el sorteo',
+      datos: {
+        // Información del cliente
+        codigo: resultado.codigo,
+        nombre: resultado.nombre,
+        telefono: resultado.telefono,
+        correo: resultado.correo,
+        ciudad: resultado.ciudad,
+        
+        // Información del pedido
+        combo: `Combo ${resultado.combo} números`,
+        fechaCompra: fechaFormateada,
+        total: `$${(resultado.combo * 5.99).toFixed(2)}`, // Precio ejemplo
+        estado: 'Confirmado y Entregado',
+        
+        // Información del sorteo
+        numeros: resultado.numeros,
+        participaciones: resultado.numeros.length,
+        codigoSorteo: 'SORT-2024-08',
+        estadoSorteo: 'Activo'
+      }
+    });
+
+  } catch (error) {
+    console.error('Error al verificar elegibilidad para sorteo:', error);
+    res.status(500).json({ 
+      elegible: false,
+      razon: 'error_servidor',
+      mensaje: 'Error interno del servidor. Inténtalo de nuevo.',
+      datos: null
+    });
+  }
+});
+
+// 🆕 NUEVA RUTA: Registrar participación en sorteo
+app.post('/participar-sorteo', async (req, res) => {
+  const { codigo } = req.body;
+
+  try {
+    // Verificar que el código existe y está confirmado
+    const confirmacion = await Confirmacion.findOne({ 
+      codigo, 
+      confirmado: true 
+    });
+    
+    if (!confirmacion) {
+      return res.status(400).json({
+        participacion: false,
+        mensaje: 'Código no válido o no confirmado para participar en el sorteo'
+      });
+    }
+
+    // Aquí podrías agregar lógica adicional como:
+    // - Verificar si ya participó antes
+    // - Guardar en tabla de participantes
+    // - Registrar fecha/hora de participación
+    
+    // Por ahora, generar número de confirmación único
+    const numeroConfirmacion = `PART-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+
+    res.json({
+      participacion: true,
+      numeroConfirmacion: numeroConfirmacion,
+      mensaje: 'Participación registrada exitosamente en el sorteo',
+      detalles: {
+        nombre: confirmacion.nombre,
+        codigo: confirmacion.codigo,
+        boletos: confirmacion.numeros.length,
+        fechaParticipacion: new Date().toLocaleString('es-EC'),
+        sorteo: 'SORT-2024-08'
+      }
+    });
+
+  } catch (error) {
+    console.error('Error al registrar participación:', error);
+    res.status(500).json({
+      participacion: false,
+      mensaje: 'Error interno del servidor al registrar participación'
+    });
+  }
+});
+
+
+
 app.listen(PORT, () => {
   console.log(`Servidor iniciado en el puerto ${PORT}`);
 });
+
 
 
 
