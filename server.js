@@ -42,6 +42,18 @@ const confirmacionSchema = new mongoose.Schema({
 
 const Confirmacion = mongoose.model('Confirmacion', confirmacionSchema);
 
+// guardar datos en colección "gratis"
+const gratisSchema = new mongoose.Schema({
+  codigo: String,
+  nombre: String,
+  telefono: String,
+  fechaParticipacion: { type: Date, default: Date.now },
+  numeroConfirmacion: String,
+  sorteo: { type: String, default: 'SORT-2024-08' }
+});
+
+const Gratis = mongoose.model('Gratis', gratisSchema);
+
 // Usuarios predefinidos con tipo usando variables de entorno
 const usuarios = [
   {
@@ -534,7 +546,7 @@ app.get('/verificar-sorteo/:codigo', async (req, res) => {
         // Información del pedido
         combo: `Combo ${resultado.combo} números`,
         fechaCompra: fechaFormateada,
-        total: `$${(resultado.combo * 5.99).toFixed(2)}`, // Precio ejemplo
+        total: `$${(resultado.combo * 2).toFixed(2)}`, // Precio por numero (* 2)
         estado: 'Confirmado y Entregado',
         
         // Información del sorteo
@@ -574,14 +586,36 @@ app.post('/participar-sorteo', async (req, res) => {
       });
     }
 
+    // 🔍 Verificar si ya participó antes
+    const yaParticipo = await Gratis.findOne({ codigo });
+    if (yaParticipo) {
+      return res.status(400).json({
+        participacion: false,
+        mensaje: 'Este código ya participó en el sorteo anteriormente',
+        numeroConfirmacion: yaParticipo.numeroConfirmacion
+      });
+    }
+    
     // Aquí podrías agregar lógica adicional como:
-    // - Verificar si ya participó antes
-    // - Guardar en tabla de participantes
+    // - Verificar si ya participó antes        HECHO
+    // - Guardar en tabla de participantes      HECHO
     // - Registrar fecha/hora de participación
     
     // Por ahora, generar número de confirmación único
     const numeroConfirmacion = `PART-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
 
+    // 🆕 GUARDAR EN COLECCIÓN "GRATIS"
+    const nuevaParticipacion = new Gratis({
+      codigo: confirmacion.codigo,
+      nombre: confirmacion.nombre,
+      telefono: confirmacion.telefono,
+      numeroConfirmacion: numeroConfirmacion,
+      fechaParticipacion: new Date(),
+      sorteo: 'SORT-2024-08'
+    });
+
+    await nuevaParticipacion.save();
+    
     res.json({
       participacion: true,
       numeroConfirmacion: numeroConfirmacion,
@@ -609,6 +643,7 @@ app.post('/participar-sorteo', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor iniciado en el puerto ${PORT}`);
 });
+
 
 
 
