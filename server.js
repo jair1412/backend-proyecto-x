@@ -602,7 +602,7 @@ app.post('/participar-sorteo', async (req, res) => {
     // - Registrar fecha/hora de participación
     
     // Por ahora, generar número de confirmación único
-    const numeroConfirmacion = `PART-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+    const numeroConfirmacion = `SG-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
 
     // 🆕 GUARDAR EN COLECCIÓN "GRATIS"
     const nuevaParticipacion = new Gratis({
@@ -643,6 +643,7 @@ app.post('/participar-sorteo', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor iniciado en el puerto ${PORT}`);
 });
+
 
 
 
