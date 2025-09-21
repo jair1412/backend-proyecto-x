@@ -4,7 +4,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const app = express();
-const LIMITE_TOTAL = 200;    // números totales a vender
+const LIMITE_TOTAL = 150;    // números totales a vender
 const PORT = process.env.PORT || 3000;
 
 // CORS - permitir origen de GitHub Pages
@@ -546,7 +546,7 @@ app.get('/verificar-sorteo/:codigo', async (req, res) => {
         // Información del pedido
         combo: `Combo ${resultado.combo} números`,
         fechaCompra: fechaFormateada,
-        total: `$${(resultado.combo *1).toFixed(2)}`, // Precio por numero (* 2)
+        total: `$${(resultado.combo *2).toFixed(2)}`, // Precio por numero (* 2)
         estado: 'Confirmado y Entregado',
         
         // Información del sorteo
@@ -643,6 +643,7 @@ app.post('/participar-sorteo', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor iniciado en el puerto ${PORT}`);
 });
+
 
 
 
